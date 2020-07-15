@@ -135,6 +135,8 @@ config.set('Colors', 'file_prio_high',   'bg:red,fg:black')
 config.set('Colors', 'file_prio_normal', 'bg:white,fg:black')
 config.set('Colors', 'file_prio_low',    'bg:yellow,fg:black')
 config.set('Colors', 'file_prio_off',    'bg:blue,fg:black')
+config.set('Colors', 'connection_status',    'bg:blue,fg:black')
+config.set('Colors', 'torrents_stats',    'bg:blue,fg:black')
 
 
 class ColorManager(object):
@@ -2623,7 +2625,7 @@ class Interface(object):
         return focus, scrollpos
 
     def draw_stats(self):
-        self.screen.insstr(self.height-1, 0, ' '.center(self.width), curses.A_REVERSE)
+        self.screen.insstr(self.height-1, 0, ' '.center(self.width), curses.color_pair(self.colors.id('torrents_stats')) + curses.A_REVERSE)
         self.draw_torrents_stats()
         self.draw_global_rates()
 
@@ -2638,27 +2640,27 @@ class Interface(object):
                                    "PEX:%d " % self.torrent_details['peersFrom']['fromPex'] + \
                                    "Incoming:%d " % self.torrent_details['peersFrom']['fromIncoming'] + \
                                    "Cache:%d)" % self.torrent_details['peersFrom']['fromCache'],
-                               curses.A_REVERSE)
+                              curses.color_pair(self.colors.id('torrents_stats')) + curses.A_REVERSE)
         elif vmode_id > -1:
-            self.screen.addstr((self.height-1), 0, "-- VISUAL --", curses.A_REVERSE)
+            self.screen.addstr((self.height-1), 0, "-- VISUAL --", curses.color_pair(self.colors.id('torrents_stats')) +curses.A_REVERSE)
         else:
             self.screen.addstr((self.height-1), 0, "Torrent%s:" % ('s','')[len(self.torrents) == 1],
-                                   curses.A_REVERSE)
-            self.screen.addstr("%d (" % len(self.torrents), curses.A_REVERSE)
+                                 curses.color_pair(self.colors.id('torrents_stats')) +  curses.A_REVERSE)
+            self.screen.addstr("%d (" % len(self.torrents), curses.color_pair(self.colors.id('torrents_stats')) +curses.A_REVERSE)
 
             downloading = len([x for x in self.torrents if x['status']==Transmission.STATUS_DOWNLOAD])
             seeding = len([x for x in self.torrents if x['status']==Transmission.STATUS_SEED])
             paused = self.stats['pausedTorrentCount']
 
-            self.screen.addstr("Downloading:", curses.A_REVERSE)
-            self.screen.addstr("%d " % downloading, curses.A_REVERSE)
-            self.screen.addstr("Seeding:", curses.A_REVERSE)
-            self.screen.addstr("%d " % seeding, curses.A_REVERSE)
-            self.screen.addstr("Paused:", curses.A_REVERSE)
-            self.screen.addstr("%d) " % paused, curses.A_REVERSE)
+            self.screen.addstr("Downloading:", curses.color_pair(self.colors.id('torrents_stats')) +curses.A_REVERSE)
+            self.screen.addstr("%d " % downloading, curses.color_pair(self.colors.id('torrents_stats')) +curses.A_REVERSE)
+            self.screen.addstr("Seeding:", curses.color_pair(self.colors.id('torrents_stats')) +curses.A_REVERSE)
+            self.screen.addstr("%d " % seeding, curses.color_pair(self.colors.id('torrents_stats')) + curses.A_REVERSE)
+            self.screen.addstr("Paused:",curses.color_pair(self.colors.id('torrents_stats')) + curses.A_REVERSE)
+            self.screen.addstr("%d) " % paused, curses.color_pair(self.colors.id('torrents_stats')) + curses.A_REVERSE)
 
             if self.filter_list:
-                self.screen.addstr("Filter:", curses.A_REVERSE)
+                self.screen.addstr("Filter:",curses.color_pair(self.colors.id('filter_status')) +  curses.A_REVERSE)
                 self.screen.addstr("%s%s" % (('','not ')[self.filter_inverse], self.filter_list),
                                    curses.color_pair(self.colors.id('filter_status'))
                                    + curses.A_REVERSE)
@@ -2666,7 +2668,7 @@ class Interface(object):
             # show last sort order (if terminal size permits it)
             curpos_y, curpos_x = self.screen.getyx()
             if self.sort_orders and self.width - curpos_x > 20:
-                self.screen.addstr(" Sort by:", curses.A_REVERSE)
+                self.screen.addstr(" Sort by:",curses.color_pair(self.colors.id('torrents_stats')) +  curses.A_REVERSE)
                 name = [name[1] for name in self.sort_options if name[0] == self.sort_orders[-1]['name']][0]
                 name = name.replace('_', '').lower()
                 curses_tags = curses.color_pair(self.colors.id('filter_status')) + curses.A_REVERSE
@@ -2700,20 +2702,20 @@ class Interface(object):
             self.screen.addch(' ', curses.A_REVERSE)
 
         self.screen.move(self.height - 1, self.width - rates_width - limits_width)
-        self.screen.addch(curses.ACS_DARROW, curses.A_REVERSE)
+        self.screen.addch(curses.ACS_DARROW, curses.color_pair(self.colors.id('download_rate')) +  curses.A_REVERSE)
         self.screen.addstr(scale_bytes(self.stats['downloadSpeed']).rjust(self.rateDownload_width),
                            curses.color_pair(self.colors.id('download_rate'))
                            + curses.A_REVERSE + curses.A_BOLD)
         self.screen.addstr(limits['dn_limit'], curses.A_REVERSE)
-        self.screen.addch(' ', curses.A_REVERSE)
-        self.screen.addch(curses.ACS_UARROW, curses.A_REVERSE)
+        self.screen.addch(' ', curses.color_pair(1) + curses.A_REVERSE)
+        self.screen.addch(curses.ACS_UARROW, curses.color_pair(self.colors.id('download_rate')) + curses.A_REVERSE)
         self.screen.insstr(limits['up_limit'], curses.A_REVERSE)
         self.screen.insstr(scale_bytes(self.stats['uploadSpeed']).rjust(self.rateUpload_width),
                            curses.color_pair(self.colors.id('upload_rate'))
                            + curses.A_REVERSE + curses.A_BOLD)
 
     def draw_title_bar(self):
-        self.screen.insstr(0, 0, ' '.center(self.width), curses.A_REVERSE)
+        self.screen.insstr(0, 0, ' '.center(self.width), curses.color_pair(self.colors.id('connection_status')) + curses.A_REVERSE)
         self.draw_connection_status()
         self.draw_quick_help()
 
@@ -2721,7 +2723,7 @@ class Interface(object):
         status = "Transmission %s @ %s:%s" % (server.version, server.host, server.port)
         if cmd_args.DEBUG:
             status = "%d x %d " % (self.width, self.height) + status
-        self.screen.addstr(0, 0, status, curses.A_REVERSE)
+        self.screen.addstr(0, 0, status, curses.color_pair(self.colors.id('connection_status'))+curses.A_REVERSE)
 
     def draw_quick_help(self):
         help = [('?','Help')]
@@ -2746,7 +2748,7 @@ class Interface(object):
 
         line = '  '.join(["%s:%s" % (x[0], x[1]) for x in help])
         line = line[0:self.width]
-        self.screen.insstr(0, self.width-len(line), line, curses.A_REVERSE)
+        self.screen.insstr(0, self.width-len(line), line, curses.color_pair(self.colors.id('connection_status')) + curses.A_REVERSE)
 
     def list_key_bindings(self):
         title = 'Help Menu'
